@@ -18,7 +18,7 @@ async function readFile(path) {
   };
 }
 
-async function exists(filepath) {
+async function isExists(filepath) {
   try {
     await fs.access(filepath, constants.R_OK);
     return true;
@@ -39,21 +39,20 @@ function suffixConditionImportPlugin(options) {
           return;
         }
 
-        try {
-          const newPath = getSuffixedPath(args.path, suffix);
+        const newPath = getSuffixedPath(args.path, suffix);
+        const exists = await isExists(newPath);
 
-          await fs.access(newPath, constants.R_OK);
-
-          if (debug) {
-            const oldFileName = path.basename(args.path);
-            const newFileName = path.basename(newPath);
-            console.log(`[SuffixConditionImport] use: ${oldFileName} => ${newFileName}`);
-          }
-
-          return readFile(newPath);
-        } catch {
+        if (!exists) {
           return;
         }
+
+        if (debug) {
+          const oldFileName = path.basename(args.path);
+          const newFileName = path.basename(newPath);
+          console.log(`[SuffixConditionImport] use: ${oldFileName} => ${newFileName}`);
+        }
+
+        return readFile(newPath);
       });
     },
   };
